@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponse
 from rest_framework import viewsets
-from .models import Task, DailyTask, CustomTask, UserProfile, Achievement, UserAchievement, Notification
+from .models import Task, CustomTask, UserProfile, UserTaskCompletion
 from .serializers import TaskSerializer, UserProfileSerializer
 from .forms import CustomTaskForm, UserRegisterForm, UserLoginForm
 from django.contrib.auth.views import LoginView
@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from django.db.models import Sum
-import logging
+from django.utils import timezone
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -81,68 +81,47 @@ def user_logout(request):
 
 @csrf_exempt 
 def complete_task(request, task_id):
-    try:
-        # Cek apakah task merupakan DailyTask atau CustomTask
-        task = DailyTask.objects.get(id=task_id)
-        print("something")
-        
-        if task.is_completed:
-            messages.warning(request, "Tugas ini sudah selesai sebelumnya.")
-            return redirect('task_list')
+    task = get_object_or_404(Task, id=task_id)
+    user_profile = request.user.userprofile
 
-        # Tandai sebagai selesai
-        task.is_completed = True    
-        task.save()
+    # Check if the task has already been completed by the user
+    if UserTaskCompletion.objects.filter(user=user_profile, task=task).exists():
+        messages.warning(request, "Tugas ini sudah selesai sebelumnya.")
+        return redirect('task_list')
 
-        # Update EXP dan Coins hanya jika DailyTask
-        user_profile = task.user
-        user_profile.add_exp(task.task.exp_reward)
-        user_profile.add_coins(task.task.coin_reward)
-        user_profile.save()
-        messages.success(request, f"Tugas '{task.task.title}' selesai! Kamu mendapatkan {task.task.exp_reward} EXP dan {task.task.coin_reward} koin!")
-    except DailyTask.DoesNotExist:
-        try:
-            # Jika bukan DailyTask, cek CustomTask
-            task = CustomTask.objects.get(id=task_id)
-            task.is_completed = True
-            task.save()
-            messages.success(request, f"Tugas custom '{task.title}' berhasil diselesaikan!")
-            print("=====================hahahahhahahhahahahaha")
-        except CustomTask.DoesNotExist:
-            print("=====================hihiihihihihihihihihihihi")
-            messages.error(request, "Tugas tidak ditemukan.")
-        
+    # Mark the task as completed for the user
+    UserTaskCompletion.objects.create(user=user_profile, task=task)
+    user_profile.add_exp(task.exp_reward)
+    user_profile.save()
+    messages.success(request, f"Tugas '{task.title}' selesai! Kamu mendapatkan {task.exp_reward} EXP!")
+
     return redirect('task_list')
 
 
-from .models import Task, DailyTask, CustomTask, UserProfile
+from .models import Task, CustomTask, UserProfile
 
+@login_required
 def task_list(request):
-    from .models import Task
     difficulty_filter = request.GET.get('difficulty', None)
+    user_profile = request.user.userprofile
 
-    # Fetch all DailyTasks and CustomTasks without user filtering
-    daily_tasks = DailyTask.objects.all().distinct()
-    custom_tasks = CustomTask.objects.filter(user=request.user.userprofile).distinct()
+    tasks = Task.objects.all().distinct()
+    custom_tasks = CustomTask.objects.filter(user=user_profile).distinct()
 
     if difficulty_filter:
-        daily_tasks = daily_tasks.filter(task__difficulty=difficulty_filter)
+        tasks = tasks.filter(difficulty=difficulty_filter)
+        
+    completed_tasks = UserTaskCompletion.objects.filter(user=user_profile).values_list('task_id', flat=True)
 
     # Send the choices from Task model
     difficulty_choices = Task.DIFFICULTY_CHOICES
     
     return render(request, 'task_list.html', {
-        'tasks': daily_tasks,
+        'tasks': tasks,
         'custom_tasks': custom_tasks,
-        'difficulty_choices': difficulty_choices
+        'difficulty_choices': difficulty_choices,
+        'completed_tasks': completed_tasks
     })
-
-
-
-
-
-
-
 
 def create_custom_task(request):        
     if request.method == 'POST':
