@@ -3,7 +3,7 @@
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Gamification Health App</title>
+      <title>PlayDo</title>
       <script src="https://cdn.tailwindcss.com"></script>
       <style>
         body {
@@ -19,7 +19,7 @@
       <!-- Header dengan Animasi -->
       <header class="text-center py-8 animate-pulse">
         <h1 class="text-5xl font-extrabold text-purple-400">
-          🎮 Selamat Datang di Gamification Project!
+          🎮 Selamat Datang di PlayDo!
         </h1>
         <p class="text-lg mt-4 text-purple-300">
           Aplikasi yang membuat kesehatan jadi lebih menyenangkan!
@@ -127,31 +127,21 @@
           </a>
 
           <!-- Card 3 - Leaderboard Mingguan -->
-          <div
-            class="bg-purple-800 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300"
-          >
-            <h3 class="text-2xl font-bold mb-4">🏆 Leaderboard Mingguan</h3>
-            <p class="text-purple-300 mb-4">Peringkat tertinggi minggu ini!</p>
-            <ul class="space-y-3">
-              {% for player in top_players %}
-              <li class="flex justify-between bg-purple-700 p-3 rounded-lg">
-                <span class="font-semibold">{{ player.user.username }}</span>
-                <span>⭐ Level: {{ player.level }}</span>
-                <span>🎯 EXP: {{ player.exp }}</span>
-              </li>
-              {% empty %}
-              <li class="text-center text-purple-400">
-                Belum ada pemain yang aktif minggu ini.
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
+          <a href="{% url 'leaderboard' %}" class="block">
+            <div class="bg-purple-800 text-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl hover:ring-4 hover:ring-purple-500"
+            >
+              <h3 class="text-2xl font-bold mb-4">🏆 Leaderboard Mingguan</h3>
+              <p class="mt-4 text-purple-200">
+                Peringkat tertinggi minggu ini!
+              </p>
+            </div>
+          </a>
         </div>
       </section>
 
       <!-- Footer -->
       <footer class="bg-purple-900 text-center p-6 text-white mt-16">
-        <p>&copy; 2025 Gamification Project. All Rights Reserved.</p>
+        <p>&copy; 2025 Gamification Project "PlayDo". All Rights Reserved.</p>
       </footer>
     </body>
   </html>

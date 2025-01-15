@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from django.db.models import Sum
 from django.utils import timezone
+from django.db import models
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -67,11 +68,6 @@ def index(request):
         messages.error(request, "Profil tidak ditemukan, silakan registrasi ulang.")
         return redirect('register')
     return render(request, 'index.html', {'user': userprofile})
-
-    # Menambahkan top_players untuk leaderboard
-    top_players = UserProfile.objects.select_related('user').order_by('-exp')[:5]
-
-    return render(request, 'index.html', {'user_profile': user_profile, 'top_players': top_players})
 
 
 
@@ -140,14 +136,14 @@ def delete_custom_task(request, task_id):
     task.delete()
     return redirect('task_list')
 
+@login_required
 def leaderboard(request):
-    today = now().date()
-    # Filter user dengan exp yang bertambah dalam 7 hari terakhir
-    top_users = UserProfile.objects.annotate(
-        total_exp=Sum('exp')
-    ).order_by('-exp')[:5]
+    # Fetch users ordered by level, exp, and finished task time
+    users = UserProfile.objects.annotate(
+        last_task_time=models.Max('usertaskcompletion__completed_at')
+    ).order_by('-level', '-exp', 'last_task_time')[:10]
 
-    return render(request, 'tasks/leaderboard.html', {'top_users': top_users})
+    return render(request, 'leaderboard.html', {'users': users})
 
 
 @login_required

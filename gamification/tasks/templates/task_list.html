@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daftar Tugas - PlayDo</title>
+    <title>Daftar Tugas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         function closeModal() {
@@ -104,7 +104,7 @@
 
   <!-- ✅ DAFTAR CUSTOM TASK (Ditempatkan setelah daftar tugas utama) -->
   <ul class="space-y-6 mt-12">
-      <h2 class="text-3xl font-bold text-blue-400 mb-4">✏ Tugas Custom</h2>
+      <h2 class="text-3xl font-bold text-blue-400 mb-4">✏ Custom task</h2>
       {% for custom_task in custom_tasks %}
       <li class="bg-gray-100 p-6 rounded-lg shadow-md flex justify-between items-center border-l-8 border-purple-400">
           <div>
@@ -129,7 +129,7 @@
       </li>
       {% empty %}
       <li class="text-center text-gray-600 text-lg font-semibold">
-          🚀 Kamu belum memiliki tugas custom! Ayo buat tugas baru.
+          🚀 Kamu belum memiliki custom task! Ayo buat tugas baru.
       </li>
       {% endfor %}
   </ul>

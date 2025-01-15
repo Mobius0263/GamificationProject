@@ -62,9 +62,16 @@ class UserTaskCompletion(models.Model):
     completed_at = models.DateTimeField(auto_now_add=True)
 
 class CustomTask(models.Model):
+    EXP_CHOICES = [
+        (50, '50 EXP'),
+        (75, '75 EXP'),
+        (100, '100 EXP'),
+    ]
+    
     title = models.CharField(max_length=255)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     description = models.TextField()
+    exp_reward = models.IntegerField(EXP_CHOICES, default=0)
     is_validated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     is_completed = models.BooleanField(default=False)
