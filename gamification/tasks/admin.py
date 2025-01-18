@@ -1,9 +1,8 @@
 from django.contrib import admin
-from .models import UserProfile, Task, CustomTask, Moderator, Notification
+from .models import UserProfile, Task, CustomTask, Moderator
 
 admin.site.register(CustomTask)
 admin.site.register(Moderator)
-admin.site.register(Notification)
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):

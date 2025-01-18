@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth.models import User
 from django_resized import ResizedImageField
 from django.dispatch import receiver
@@ -63,6 +64,7 @@ class UserTaskCompletion(models.Model):
 
 class CustomTask(models.Model):
     EXP_CHOICES = [
+        (0, '0 EXP'),
         (50, '50 EXP'),
         (75, '75 EXP'),
         (100, '100 EXP'),
@@ -71,25 +73,26 @@ class CustomTask(models.Model):
     title = models.CharField(max_length=255)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     description = models.TextField()
-    exp_reward = models.IntegerField(EXP_CHOICES, default=0)
+    exp_reward = models.IntegerField(default=0, choices=EXP_CHOICES)
     is_validated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     is_completed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
+    
+    def schedule_deletion(self):
+        deletion_time = timezone.now() + timedelta(hours=12)
+        self.delete_at = deletion_time
+        self.save()
+
+class UserCustomTaskCompletion(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    task = models.ForeignKey(CustomTask, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
 
 class Moderator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.username
-
-class Notification(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    message = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.user.user.username} - {self.message}"

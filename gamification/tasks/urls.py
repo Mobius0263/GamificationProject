@@ -8,6 +8,7 @@ from django.contrib import admin
 urlpatterns = [
     path('', views.index, name='index'),
     path('complete/<int:task_id>/', views.complete_task, name='complete_task'),
+    path('complete_custom_task/<int:task_id>/', views.complete_custom_task, name='complete_custom_task'),
     path('task_list/', views.task_list, name='task_list'),
     path('tasks/delete/<int:task_id>/', views.delete_custom_task, name='delete_custom_task'),
     path('create/', views.create_custom_task, name='create_custom_task'),

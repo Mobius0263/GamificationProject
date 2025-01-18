@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponse
 from rest_framework import viewsets
-from .models import Task, CustomTask, UserProfile, UserTaskCompletion
+from .models import Task, CustomTask, UserProfile, UserTaskCompletion, UserCustomTaskCompletion
 from .serializers import TaskSerializer, UserProfileSerializer
 from .forms import CustomTaskForm, UserRegisterForm, UserLoginForm
 from django.contrib.auth.views import LoginView
@@ -75,7 +75,8 @@ def user_logout(request):
     logout(request)
     return redirect('login')
 
-@csrf_exempt 
+@csrf_exempt
+@login_required
 def complete_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     user_profile = request.user.userprofile
@@ -134,6 +135,35 @@ def create_custom_task(request):
 def delete_custom_task(request, task_id):
     task = get_object_or_404(CustomTask, id=task_id)
     task.delete()
+    return redirect('task_list')
+
+@csrf_exempt
+@login_required
+def complete_custom_task(request, task_id):
+    custom_task = get_object_or_404(CustomTask, id=task_id)
+    user_profile = request.user.userprofile
+
+    # Check if the custom task has been validated
+    if not custom_task.is_validated:
+        messages.warning(request, "Tugas custom ini belum divalidasi oleh moderator.")
+        return redirect('task_list')
+
+    # Check if the custom task has already been completed by the user
+    if UserCustomTaskCompletion.objects.filter(user=user_profile, task=custom_task).exists():
+        messages.warning(request, "Tugas custom ini sudah selesai sebelumnya.")
+        return redirect('task_list')
+
+    # Mark the custom task as completed for the user
+    UserCustomTaskCompletion.objects.create(user=user_profile, task=custom_task)
+    custom_task.is_completed = True
+    custom_task.save()
+    user_profile.add_exp(custom_task.exp_reward)
+    user_profile.save()
+    messages.success(request, f"Tugas custom '{custom_task.title}' selesai! Kamu mendapatkan {custom_task.exp_reward} EXP!")
+
+    # Schedule the custom task for deletion after 12 hours
+    custom_task.schedule_deletion()
+
     return redirect('task_list')
 
 @login_required
