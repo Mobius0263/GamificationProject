@@ -26,5 +26,5 @@ class UserLoginForm(AuthenticationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['bio', 'banner_image', 'profile_picture']  # Hanya form, bukan model baru
+        fields = ['bio', 'banner_image', 'profile_picture']
 
