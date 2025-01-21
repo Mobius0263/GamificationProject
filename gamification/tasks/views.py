@@ -96,12 +96,20 @@ def complete_task(request, task_id):
 
 
 from .models import Task, CustomTask, UserProfile
+import random
 
 @login_required
 def task_list(request):
     difficulty_filter = request.GET.get('difficulty', None)
     user_profile = request.user.userprofile
 
+    easy_tasks = list(Task.objects.filter(difficulty='easy').order_by('created_at')[:2])
+    medium_tasks = list(Task.objects.filter(difficulty='medium').order_by('created_at')[:2])
+    hard_tasks = list(Task.objects.filter(difficulty='hard').order_by('created_at')[:1])
+    
+    tasks = easy_tasks + medium_tasks + hard_tasks
+    random.shuffle(tasks)
+    
     tasks = Task.objects.all().distinct()
     custom_tasks = CustomTask.objects.filter(user=user_profile).distinct()
 
